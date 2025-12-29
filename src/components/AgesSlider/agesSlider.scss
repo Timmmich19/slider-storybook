@@ -5,11 +5,8 @@
 }
 
 .item {
-  display: flex;
-  flex-direction: column;
   position: relative;
-  height: 100vh;
-  overflow: auto;
+  height: 100%;
   grid-column: 5 / -3;
   border-left: 1px solid #42567a1a;
   border-right: 1px solid #42567a1a;
@@ -18,7 +15,7 @@
 }
 
 .item::after {
-  content: "";
+  content: '';
   position: absolute;
   top: 0;
   left: 50%;
@@ -27,7 +24,7 @@
 }
 
 .item::before {
-  content: "";
+  content: '';
   position: absolute;
   top: 45%;
   left: 0;
@@ -36,29 +33,98 @@
 }
 
 .title {
-  line-height: 1.2;
   color: #42567a;
   position: absolute;
   font-weight: 700;
-  font-size: 56px;
-  top: 100px;
+  font-size: 3rem;
+  top: 10%;
   left: 0;
   border-left: 5px solid;
   border-image: linear-gradient(0, #3877ee, #ef5da8) 1;
   padding-left: calc(100vw / 24);
 }
 
-.slide {
-  border: 1px solid black;
+.slider-container {
+  position: relative;
+  width: 100%;
 }
 
-.swiper-button-prev,
-.swiper-button-next {
-  box-shadow: 0 0 15px #3877ee1a;
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-  border: 0px;
+.events-slider {
+  height: 140px;
+  //TODO: Убрать отступ
+  margin-top: 60vh;
+  // width: 90%;
+  // max-width: 90%;
+
+  &__slide {
+    flex-shrink: 0;
+    gap: 1rem;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    justify-content: center;
+    box-sizing: border-box;
+  }
+
+  &__slide-title {
+    font-family: 'BebasNeue', system-ui, sans-serif;
+    font-size: 1.5rem;
+    color: #3877ee;
+  }
+
+  &__slide-desc {
+    font-size: 1rem;
+    line-height: 1.5em;
+    color: #42567a;
+    margin: 0;
+    overflow: hidden;
+    display: -webkit-box;
+    line-clamp: 3;
+    -webkit-line-clamp: 3; // 3 строки максимум
+    -webkit-box-orient: vertical;
+  }
+}
+
+.swiper-slide {
+  height: 100%;
+  width: calc(30% - 40px);
+}
+
+.slider-buttons {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  left: -5%;
+  right: -5%;
+  display: flex;
+  justify-content: space-between;
+  z-index: 10;
+  pointer-events: none;
+}
+
+.prev-btn,
+.next-btn {
+  pointer-events: all;
+  width: 36px;
+  height: 36px;
   background: white;
+  box-shadow: #3877ee4d 0 0 15px;
+  border: none;
+  border-radius: 50%;
+  color: white;
   cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s;
+  opacity: 1;
+  transition: opacity 0.3s ease;
+
+  &:hover {
+    border: 1px solid #42567a4d;
+  }
+
+  &[style*='opacity: 0'] {
+    pointer-events: none;
+  }
 }
