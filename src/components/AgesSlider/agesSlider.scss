@@ -7,6 +7,9 @@
 .item {
   position: relative;
   height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
   grid-column: 5 / -3;
   border-left: 1px solid #42567a1a;
   border-right: 1px solid #42567a1a;
@@ -26,7 +29,7 @@
 .item::before {
   content: '';
   position: absolute;
-  top: 45%;
+  top: 40%;
   left: 0;
   width: 100%;
   border-bottom: 1px solid #42567a1a;
@@ -36,7 +39,7 @@
   color: #42567a;
   position: absolute;
   font-weight: 700;
-  font-size: 3rem;
+  font-size: clamp(2rem, 5vw, 3rem);
   top: 10%;
   left: 0;
   border-left: 5px solid;
@@ -45,16 +48,150 @@
 }
 
 .slider-container {
-  position: relative;
-  width: 100%;
+  position: absolute;
+  top: 70%;
+  width: 90%;
+}
+
+.circle-slider {
+  position: absolute;
+  width: 90%;
+  top: 40%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+
+  &__swiper {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    height: 200px;
+    width: 800px;
+  }
+
+  &__controls {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 15px;
+    z-index: 10;
+  }
+
+  &__counter {
+    font-family: 'PTSans';
+    font-weight: 400;
+    font-size: 1rem;
+    color: #42567a;
+    white-space: nowrap;
+  }
+
+  &__buttons {
+    display: flex;
+    gap: 20px;
+    z-index: 10;
+  }
+
+  &__prev-btn,
+  &__next-btn {
+    pointer-events: all;
+    width: 44px;
+    height: 44px;
+    background: #f1f5f9;
+    border: 1px solid #42567a80;
+    border-radius: 50%;
+    color: #42567a;
+    cursor: pointer;
+    transition: all 0.3s;
+
+    &:hover {
+      background: white;
+    }
+  }
+
+  &__circle {
+    position: relative;
+    width: 360px;
+    height: 360px;
+    border: 1px solid #42567a33;
+    border-radius: 50%;
+    margin: 0 auto;
+    z-index: 5;
+  }
+
+  &__age-interval {
+    position: absolute;
+    white-space: nowrap;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-family: 'OpenSans';
+    font-weight: 700;
+    font-size: 10rem;
+    span:first-child {
+      color: #3877ee;
+    }
+    span:last-child {
+      color: #ef5da8;
+    }
+  }
 }
 
 .events-slider {
+  position: absolute;
   height: 140px;
-  //TODO: Убрать отступ
-  margin-top: 60vh;
-  // width: 90%;
-  // max-width: 90%;
+  top: 70%;
+  width: 90%;
+
+  .swiper-slide {
+    height: 100%;
+    width: calc(30% - 40px);
+  }
+
+  &__swiper {
+    height: 140px;
+  }
+
+  &__buttons {
+    position: absolute;
+    top: 50%;
+    left: -5%;
+    right: -5%;
+    display: flex;
+    justify-content: space-between;
+    transform: translateY(-50%);
+    z-index: 10;
+    pointer-events: none;
+  }
+
+  &__prev-btn,
+  &__next-btn {
+    pointer-events: all;
+    width: 36px;
+    height: 36px;
+    background: white;
+    box-shadow: #3877ee4d 0 0 15px;
+    border: none;
+    border-radius: 50%;
+    color: white;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s;
+    opacity: 1;
+    transition: opacity 0.3s ease;
+
+    &:hover {
+      border: 1px solid #42567a4d;
+    }
+
+    &[style*='opacity: 0'] {
+      pointer-events: none;
+    }
+  }
 
   &__slide {
     flex-shrink: 0;
@@ -67,7 +204,7 @@
   }
 
   &__slide-title {
-    font-family: 'BebasNeue', system-ui, sans-serif;
+    font-family: 'OpenSans', system-ui, sans-serif;
     font-size: 1.5rem;
     color: #3877ee;
   }
@@ -82,49 +219,5 @@
     line-clamp: 3;
     -webkit-line-clamp: 3; // 3 строки максимум
     -webkit-box-orient: vertical;
-  }
-}
-
-.swiper-slide {
-  height: 100%;
-  width: calc(30% - 40px);
-}
-
-.slider-buttons {
-  position: absolute;
-  top: 50%;
-  transform: translateY(-50%);
-  left: -5%;
-  right: -5%;
-  display: flex;
-  justify-content: space-between;
-  z-index: 10;
-  pointer-events: none;
-}
-
-.prev-btn,
-.next-btn {
-  pointer-events: all;
-  width: 36px;
-  height: 36px;
-  background: white;
-  box-shadow: #3877ee4d 0 0 15px;
-  border: none;
-  border-radius: 50%;
-  color: white;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: all 0.3s;
-  opacity: 1;
-  transition: opacity 0.3s ease;
-
-  &:hover {
-    border: 1px solid #42567a4d;
-  }
-
-  &[style*='opacity: 0'] {
-    pointer-events: none;
   }
 }
