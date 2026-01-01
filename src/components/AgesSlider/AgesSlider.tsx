@@ -171,17 +171,22 @@ const CircularSlider = ({activeIndex, onChange, onAnimateStateChange}: CircularS
           {mockData.map((_, idx) => {
             const {x, y} = getDotPosition(idx, totalSlides)
             return (
-              <button
-                key={idx}
-                type='button'
-                className={`circle-slider__dot ${idx === activeIndex ? 'circle-slider__dot--active' : ''}`}
+              <div
+                className='circle-slider__dot-wrapper'
                 style={{
-                  transform: `translate(${x}px, ${y}px)`
+                  top: `${y}px`,
+                  left: `${x}px`
                 }}
-                onClick={() => handleDotClick(idx)}
               >
-                {idx + 1}
-              </button>
+                <button
+                  key={idx}
+                  type='button'
+                  className={`circle-slider__dot ${idx === activeIndex ? 'circle-slider__dot--active' : ''}`}
+                  onClick={() => handleDotClick(idx)}
+                >
+                  {idx + 1}
+                </button>
+              </div>
             )
           })}
         </div>

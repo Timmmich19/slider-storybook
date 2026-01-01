@@ -54,6 +54,8 @@
 }
 
 .circle-slider {
+  --dot-width: 32px;
+
   position: absolute;
   width: 90%;
   top: 40%;
@@ -122,39 +124,51 @@
   }
 
   &__dots {
-    position: absolute;
-    top: calc(50% - 16px);
-    left: calc(50% - 16px);
+    position: relative;
+    width: 360px;
+    height: 360px;
+    top: calc(50% - var(--dot-width) / 2);
+    left: calc(50% - var(--dot-width) / 2);
     z-index: 5;
-    // transform: translate(-50%, -50%);
+  }
+
+  &__dot-wrapper {
+    position: absolute;
+    border-radius: 50%;
+    width: var(--dot-width);
+    height: var(--dot-width);
+    cursor: pointer;
+
+    &:hover .circle-slider__dot {
+      background: #f1f5f9;
+      color: #42567a;
+      border: 1px solid #42567a80;
+      transform: scale(1);
+    }
   }
 
   &__dot {
-    position: absolute;
-    width: 32px;
-    height: 32px;
+    width: var(--dot-width);
+    height: var(--dot-width);
     border-radius: 50%;
+    background: #42567a;
+    color: transparent;
     border: 1px solid #42567a80;
-    background: #f1f5f9;
-    color: #42567a;
     font-size: 0.9rem;
     display: flex;
     align-items: center;
     justify-content: center;
     cursor: pointer;
     transform-origin: center center;
-    transition: background 0.2s ease, transform 0.2s ease, border-color 0.2s ease;
-
-    // &:hover {
-    //   // background: white;
-    //   transform: scale(1.05) translateZ(0);
-    // }
+    transition: all 0.2s ease;
+    transform: scale(0.2);
   }
 
   &__dot--active {
     background: #f1f5f9;
-    border-color: #42567a80;
-    transform: scale(1.5);
+    color: #42567a;
+    border: 1px solid #42567a80;
+    transform: scale(1);
   }
 
   &__age-interval {
