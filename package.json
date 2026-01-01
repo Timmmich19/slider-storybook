@@ -23,6 +23,7 @@
   "homepage": "https://github.com/Timmmich19/slider-storybook#readme",
   "dependencies": {
     "@faker-js/faker": "^10.1.0",
+    "gsap": "^3.14.2",
     "react": "^19.2.3",
     "react-dom": "^19.2.3",
     "swiper": "^12.0.3"

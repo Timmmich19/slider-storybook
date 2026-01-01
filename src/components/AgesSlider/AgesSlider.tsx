@@ -6,6 +6,8 @@ import 'swiper/css/pagination'
 import './AgesSlider.scss'
 import ArrowIcon from '../../assets/ArrowIcon'
 
+import gsap from 'gsap'
+
 import {generateAges, type AgesInterval, type EventsData} from '../../shared/mock/generateAges'
 
 import {useCallback, useEffect, useRef, useState} from 'react'
@@ -14,6 +16,7 @@ const mockData: AgesInterval[] = generateAges()
 
 const AgesSlider = () => {
   const [activePeriodIndex, setActivePeriodIndex] = useState(0)
+  const [isCircleAnimating, setIsCircleAnimating] = useState(false)
 
   return (
     <div className='container'>
@@ -22,8 +25,12 @@ const AgesSlider = () => {
           Исторические <br />
           даты
         </div>
-        <CircularSlider activeIndex={activePeriodIndex} onChange={setActivePeriodIndex} />
-        <EventsSlider events={mockData[activePeriodIndex].events} />
+        <CircularSlider
+          activeIndex={activePeriodIndex}
+          onChange={setActivePeriodIndex}
+          onAnimateStateChange={setIsCircleAnimating}
+        />
+        <EventsSlider events={mockData[activePeriodIndex].events} isCircleAnimating={isCircleAnimating} />
       </div>
     </div>
   )
@@ -32,13 +39,22 @@ const AgesSlider = () => {
 type CircularSliderProps = {
   activeIndex: number
   onChange: (index: number) => void
+  onAnimateStateChange: (isAnimating: boolean) => void
 }
 
-const CircularSlider = ({activeIndex, onChange}: CircularSliderProps) => {
+const CircularSlider = ({activeIndex, onChange, onAnimateStateChange}: CircularSliderProps) => {
   const swiperRef = useRef<SwiperRef>(null)
   const prevBtnRef = useRef<HTMLButtonElement>(null)
   const nextBtnRef = useRef<HTMLButtonElement>(null)
   const totalSlides = mockData.length
+
+  const [fromYear, setFromYear] = useState(mockData[0].from)
+  const [toYear, setToYear] = useState(mockData[0].to)
+
+  const lastTargetRef = useRef<{from: number; to: number}>({
+    from: mockData[0].from,
+    to: mockData[0].to
+  })
 
   useEffect(() => {
     const swiper = swiperRef.current?.swiper
@@ -55,11 +71,52 @@ const CircularSlider = ({activeIndex, onChange}: CircularSliderProps) => {
     swiperRef.current?.swiper?.slideNext()
   }, [])
 
+  const animateYears = useCallback(
+    (newIndex: number) => {
+      const nextInterval = mockData[newIndex]
+
+      const fromStart = lastTargetRef.current.from
+      const toStart = lastTargetRef.current.to
+
+      const fromEnd = nextInterval.from
+      const toEnd = nextInterval.to
+
+      const state = {from: fromStart, to: toStart}
+
+      onAnimateStateChange(true)
+
+      gsap.to(state, {
+        from: fromEnd,
+        to: toEnd,
+        duration: 0.6,
+        ease: 'none',
+        onUpdate: () => {
+          setFromYear(Math.round(state.from))
+          setToYear(Math.round(state.to))
+        },
+        onComplete: () => {
+          lastTargetRef.current = {from: fromEnd, to: toEnd}
+          onAnimateStateChange(false)
+        }
+      })
+    },
+    [onAnimateStateChange]
+  )
+
+  const handleDotClick = (index: number) => {
+    const swiper = swiperRef.current?.swiper
+    if (!swiper) return
+    swiper.slideTo(index)
+  }
+
   const handleSlideChange = useCallback(() => {
     const swiper = swiperRef.current?.swiper
     if (!swiper) return
-    onChange(swiper.activeIndex) // синхронизируем родительский state
-  }, [onChange])
+
+    const newIndex = swiper.activeIndex
+    onChange(newIndex)
+    animateYears(newIndex)
+  }, [onChange, animateYears])
 
   useEffect(() => {
     const swiper = swiperRef.current?.swiper
@@ -68,6 +125,28 @@ const CircularSlider = ({activeIndex, onChange}: CircularSliderProps) => {
       return () => swiper.off('slideChange', handleSlideChange)
     }
   }, [handleSlideChange])
+
+  useEffect(() => {
+    animateYears(activeIndex)
+  }, [activeIndex, animateYears])
+
+  const DOT_RADIUS_OFFSET = 0 // на сколько кнопки вынести за круг
+  const CIRCLE_RADIUS = 180 // у тебя circle 360px → радиус 180
+
+  const getDotPosition = (index: number, total: number) => {
+    const angleStep = 360 / total
+    // начинаем с 12 часов: -90 градусов, по часовой → +angle
+    const angleDeg = -90 + angleStep * index
+    const angleRad = (angleDeg * Math.PI) / 180
+
+    const r = CIRCLE_RADIUS + DOT_RADIUS_OFFSET
+
+    const x = r * Math.cos(angleRad)
+    const y = r * Math.sin(angleRad)
+
+    // x, y здесь — смещение от центра
+    return {x, y}
+  }
 
   return (
     <div className='circle-slider'>
@@ -87,20 +166,41 @@ const CircularSlider = ({activeIndex, onChange}: CircularSliderProps) => {
         </div>
       </div>
 
-      <div className='circle-slider__circle'></div>
+      <div className='circle-slider__circle'>
+        <div className='circle-slider__dots'>
+          {mockData.map((_, idx) => {
+            const {x, y} = getDotPosition(idx, totalSlides)
+            return (
+              <button
+                key={idx}
+                type='button'
+                className={`circle-slider__dot ${idx === activeIndex ? 'circle-slider__dot--active' : ''}`}
+                style={{
+                  transform: `translate(${x}px, ${y}px)`
+                }}
+                onClick={() => handleDotClick(idx)}
+              >
+                {idx + 1}
+              </button>
+            )
+          })}
+        </div>
+      </div>
+
       <Swiper
         ref={swiperRef}
         slidesPerView={1}
+        speed={0}
         allowTouchMove={false}
         onSlideChange={swiper => onChange(swiper.activeIndex)}
         className='circle-slider__swiper'
       >
-        {mockData.map((p, idx) => (
+        {mockData.map((interval, idx) => (
           <SwiperSlide key={idx}>
             <div className='circle-slider__age-interval'>
-              <span>{p.from}</span>
+              <span>{fromYear}</span>
               <span> </span>
-              <span>{p.to}</span>
+              <span>{toYear}</span>
             </div>
           </SwiperSlide>
         ))}
@@ -111,10 +211,13 @@ const CircularSlider = ({activeIndex, onChange}: CircularSliderProps) => {
 
 type EventsSliderProps = {
   events: EventsData[]
+  isCircleAnimating: boolean
 }
 
-const EventsSlider = ({events}: EventsSliderProps) => {
+const EventsSlider = ({events, isCircleAnimating}: EventsSliderProps) => {
   const swiperRef = useRef<SwiperRef>(null)
+  const wrapperRef = useRef<HTMLDivElement>(null)
+
   const prevBtnRef = useRef<HTMLButtonElement>(null)
   const nextBtnRef = useRef<HTMLButtonElement>(null)
 
@@ -147,8 +250,28 @@ const EventsSlider = ({events}: EventsSliderProps) => {
     swiperRef.current?.swiper?.slideTo(0)
   }, [events])
 
+  useEffect(() => {
+    if (!wrapperRef.current) return
+
+    if (isCircleAnimating) {
+      gsap.to(wrapperRef.current, {
+        opacity: 0,
+        duration: 0.3,
+        ease: 'power2.out',
+        pointerEvents: 'none'
+      })
+    } else {
+      gsap.to(wrapperRef.current, {
+        opacity: 1,
+        duration: 0.3,
+        ease: 'power2.in',
+        pointerEvents: 'auto'
+      })
+    }
+  }, [isCircleAnimating])
+
   return (
-    <div className='events-slider'>
+    <div className='events-slider' ref={wrapperRef}>
       <div className='events-slider__buttons'>
         <button
           ref={prevBtnRef}

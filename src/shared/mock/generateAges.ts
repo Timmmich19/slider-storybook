@@ -13,7 +13,7 @@ export interface MockDataOptions {
 }
 
 export const generateAges = (options: MockDataOptions = {}): AgesInterval[] => {
-  const {periodCount = 8, eventsPerPeriod = {min: 4, max: 6}, startYear = 1990, yearsPerPeriod = 5} = options
+  const {periodCount = 6, eventsPerPeriod = {min: 4, max: 6}, startYear = 1990, yearsPerPeriod = 5} = options
 
   const periods: AgesInterval[] = []
 
@@ -58,7 +58,7 @@ export const generateAges = (options: MockDataOptions = {}): AgesInterval[] => {
       const day = eventDate.getDate()
       const month = monthNames[eventDate.getMonth()]
 
-      // Более длинные и реалистичные описания событий
+      // Описания событий
       const eventTemplates = [
         `${day} ${month} — ${faker.company.name()} официально представила революционную технологию ${faker.commerce.productName()}, которая изменила индустрию`,
         `${day} ${month} — Впервые в истории человечества ученые ${faker.location.city()} обнаружили уникальное природное явление ${faker.lorem.words(
