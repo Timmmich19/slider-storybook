@@ -121,6 +121,42 @@
     z-index: 5;
   }
 
+  &__dots {
+    position: absolute;
+    top: calc(50% - 16px);
+    left: calc(50% - 16px);
+    z-index: 5;
+    // transform: translate(-50%, -50%);
+  }
+
+  &__dot {
+    position: absolute;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    border: 1px solid #42567a80;
+    background: #f1f5f9;
+    color: #42567a;
+    font-size: 0.9rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transform-origin: center center;
+    transition: background 0.2s ease, transform 0.2s ease, border-color 0.2s ease;
+
+    // &:hover {
+    //   // background: white;
+    //   transform: scale(1.05) translateZ(0);
+    // }
+  }
+
+  &__dot--active {
+    background: #f1f5f9;
+    border-color: #42567a80;
+    transform: scale(1.5);
+  }
+
   &__age-interval {
     position: absolute;
     white-space: nowrap;
@@ -142,7 +178,7 @@
 .events-slider {
   position: absolute;
   height: 140px;
-  top: 70%;
+  top: 75%;
   width: 90%;
 
   .swiper-slide {
@@ -157,8 +193,8 @@
   &__buttons {
     position: absolute;
     top: 50%;
-    left: -5%;
-    right: -5%;
+    left: -46px;
+    right: -46px;
     display: flex;
     justify-content: space-between;
     transform: translateY(-50%);
