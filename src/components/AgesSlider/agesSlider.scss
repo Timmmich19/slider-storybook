@@ -54,7 +54,7 @@
 }
 
 .circle-slider {
-  --dot-width: 32px;
+  --dot-width: 40px;
 
   position: absolute;
   width: 90%;
@@ -121,6 +121,7 @@
     border-radius: 50%;
     margin: 0 auto;
     z-index: 5;
+    will-change: transform;
   }
 
   &__dots {
@@ -161,7 +162,7 @@
     cursor: pointer;
     transform-origin: center center;
     transition: all 0.2s ease;
-    transform: scale(0.2);
+    transform: scale(0.15);
   }
 
   &__dot--active {
@@ -222,7 +223,7 @@
     width: 36px;
     height: 36px;
     background: white;
-    box-shadow: #3877ee4d 0 0 15px;
+    box-shadow: #3a79ee1a 0 0 15px;
     border: none;
     border-radius: 50%;
     color: white;
