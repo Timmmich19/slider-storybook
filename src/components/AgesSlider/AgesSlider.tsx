@@ -44,41 +44,37 @@ type CircularSliderProps = {
 
 const CircularSlider = ({activeIndex, onChange, onAnimateStateChange}: CircularSliderProps) => {
   const swiperRef = useRef<SwiperRef>(null)
-  const circleRef = useRef<HTMLDivElement>(null)
-  const prevBtnRef = useRef<HTMLButtonElement>(null)
-  const nextBtnRef = useRef<HTMLButtonElement>(null)
+
   const totalSlides = mockData.length
+  const dotWrapperRefs = useRef<(HTMLDivElement | null)[]>([])
+
+  // храним текущие углы точек
+  const dotAnglesRef = useRef<number[]>([])
 
   const [fromYear, setFromYear] = useState(mockData[0].from)
   const [toYear, setToYear] = useState(mockData[0].to)
 
-  const lastTargetRef = useRef<{from: number; to: number}>({
+  const lastTargetRef = useRef({
     from: mockData[0].from,
     to: mockData[0].to
   })
 
-  const getActiveDotAngle = useCallback(() => {
-    const angleStep = 360 / totalSlides
-    return angleStep * activeIndex
-  }, [activeIndex, totalSlides])
+  /* ---------------- YEARS ---------------- */
 
   const animateYears = useCallback(
     (newIndex: number) => {
       const nextInterval = mockData[newIndex]
 
-      const fromStart = lastTargetRef.current.from
-      const toStart = lastTargetRef.current.to
-
-      const fromEnd = nextInterval.from
-      const toEnd = nextInterval.to
-
-      const state = {from: fromStart, to: toStart}
+      const state = {
+        from: lastTargetRef.current.from,
+        to: lastTargetRef.current.to
+      }
 
       onAnimateStateChange(true)
 
       gsap.to(state, {
-        from: fromEnd,
-        to: toEnd,
+        from: nextInterval.from,
+        to: nextInterval.to,
         duration: 0.6,
         ease: 'none',
         onUpdate: () => {
@@ -86,7 +82,10 @@ const CircularSlider = ({activeIndex, onChange, onAnimateStateChange}: CircularS
           setToYear(Math.round(state.to))
         },
         onComplete: () => {
-          lastTargetRef.current = {from: fromEnd, to: toEnd}
+          lastTargetRef.current = {
+            from: nextInterval.from,
+            to: nextInterval.to
+          }
           onAnimateStateChange(false)
         }
       })
@@ -94,47 +93,71 @@ const CircularSlider = ({activeIndex, onChange, onAnimateStateChange}: CircularS
     [onAnimateStateChange]
   )
 
-  const animateCircleRotation = useCallback(
-    (targetIndex: number) => {
-      if (!circleRef.current) return
+  /* ---------------- CIRCLE GEOMETRY ---------------- */
 
-      const angleStep = 360 / totalSlides
+  const CIRCLE_RADIUS = 180
+  const START_ANGLE = -60
 
-      const currentRotation = gsap.getProperty(circleRef.current, 'rotation') as number
+  const getAngleByIndex = (index: number) =>
+    START_ANGLE + (360 / totalSlides) * index
 
-      const targetRotation = -targetIndex * angleStep
+  const angleToXY = (angleDeg: number) => {
+    const rad = (angleDeg * Math.PI) / 180
+    return {
+      x: CIRCLE_RADIUS * Math.cos(rad),
+      y: CIRCLE_RADIUS * Math.sin(rad)
+    }
+  }
 
-      let rotationDelta = targetRotation - currentRotation
-      while (rotationDelta > 180) rotationDelta -= 360
-      while (rotationDelta < -180) rotationDelta += 360
+  /* ---------------- DOTS ---------------- */
 
-      gsap.to(circleRef.current, {
-        rotation: `+=${rotationDelta}`,
+  const setDotsInstant = (activeIdx: number) => {
+    dotWrapperRefs.current.forEach((wrapper, idx) => {
+      if (!wrapper) return
+
+      const shiftedIndex = (idx - activeIdx + totalSlides) % totalSlides
+      const angle = getAngleByIndex(shiftedIndex)
+
+      dotAnglesRef.current[idx] = angle
+
+      const {x, y} = angleToXY(angle)
+      gsap.set(wrapper, {x, y})
+    })
+  }
+
+  const animateDots = (activeIdx: number) => {
+    dotWrapperRefs.current.forEach((wrapper, idx) => {
+      if (!wrapper) return
+
+      const currentAngle = dotAnglesRef.current[idx]
+      const shiftedIndex = (idx - activeIdx + totalSlides) % totalSlides
+      const targetAngle = getAngleByIndex(idx - activeIdx + totalSlides)
+
+      // shortest arc
+      let delta = ((targetAngle - currentAngle + 540) % 360) - 180
+
+      const angleObj = {angle: currentAngle}
+
+      gsap.to(angleObj, {
+        angle: targetAngle,
         duration: 0.8,
         ease: 'power2.inOut',
-        transformOrigin: 'center center'
+        onUpdate: () => {
+          const {x, y} = angleToXY(angleObj.angle)
+          wrapper.style.transform = `translate(${x}px, ${y}px)`
+          dotAnglesRef.current[idx] = angleObj.angle
+        }
       })
-    },
-    [totalSlides]
-  )
+    })
+  }
 
-  const handlePrev = useCallback(() => {
-    swiperRef.current?.swiper?.slidePrev()
-    const newIndex = (activeIndex - 1 + totalSlides) % totalSlides
-    animateCircleRotation(newIndex)
-  }, [activeIndex, totalSlides, animateCircleRotation])
+  /* ---------------- HANDLERS ---------------- */
 
-  const handleNext = useCallback(() => {
-    swiperRef.current?.swiper?.slideNext()
-    const newIndex = (activeIndex + 1) % totalSlides
-    animateCircleRotation(newIndex)
-  }, [activeIndex, totalSlides, animateCircleRotation])
+  const handlePrev = () => swiperRef.current?.swiper?.slidePrev()
+  const handleNext = () => swiperRef.current?.swiper?.slideNext()
 
   const handleDotClick = (index: number) => {
-    const swiper = swiperRef.current?.swiper
-    if (!swiper) return
-    swiper.slideTo(index)
-    animateCircleRotation(index)
+    swiperRef.current?.swiper?.slideTo(index)
   }
 
   const handleSlideChange = useCallback(() => {
@@ -142,95 +165,66 @@ const CircularSlider = ({activeIndex, onChange, onAnimateStateChange}: CircularS
     if (!swiper) return
 
     const newIndex = swiper.activeIndex
+
     onChange(newIndex)
-    animateCircleRotation(newIndex)
     animateYears(newIndex)
-  }, [onChange, animateYears, animateCircleRotation])
+    animateDots(newIndex)
+  }, [onChange])
 
-  const DOT_RADIUS_OFFSET = 0
-  const CIRCLE_RADIUS = 180
+  /* ---------------- EFFECTS ---------------- */
 
-  const getDotPosition = (index: number, total: number) => {
-    const angleStep = 360 / total
-
-    const angleDeg = -60 + angleStep * index
-    const angleRad = (angleDeg * Math.PI) / 180
-
-    const r = CIRCLE_RADIUS + DOT_RADIUS_OFFSET
-
-    const x = r * Math.cos(angleRad)
-    const y = r * Math.sin(angleRad)
-    return {x, y}
-  }
+  useEffect(() => {
+    setDotsInstant(activeIndex)
+    animateYears(activeIndex)
+  }, [])
 
   useEffect(() => {
     const swiper = swiperRef.current?.swiper
-    if (swiper && swiper.activeIndex !== activeIndex) {
-      swiper.slideTo(activeIndex)
-    }
-  }, [activeIndex])
+    if (!swiper) return
 
-  useEffect(() => {
-    const swiper = swiperRef.current?.swiper
-    if (swiper) {
-      swiper.on('slideChange', handleSlideChange)
-      return () => swiper.off('slideChange', handleSlideChange)
-    }
+    swiper.on('slideChange', handleSlideChange)
+    return () => swiper.off('slideChange', handleSlideChange)
   }, [handleSlideChange])
 
-  useEffect(() => {
-    animateYears(activeIndex)
-  }, [activeIndex, animateYears])
-
-  const compensationAngle = getActiveDotAngle()
+  /* ---------------- RENDER ---------------- */
 
   return (
     <div className='circle-slider'>
       <div className='circle-slider__controls'>
         <div className='circle-slider__counter'>
-          {activeIndex + 1 < 10 ? `0${activeIndex + 1}` : activeIndex + 1}/
-          {totalSlides < 10 ? `0${totalSlides}` : totalSlides}
+          {String(activeIndex + 1).padStart(2, '0')}/{String(totalSlides).padStart(2, '0')}
         </div>
 
         <div className='circle-slider__buttons'>
-          <button ref={prevBtnRef} className='circle-slider__prev-btn' onClick={handlePrev}>
+          <button className='circle-slider__prev-btn' onClick={handlePrev}>
             <ArrowIcon direction='left' />
           </button>
-          <button ref={nextBtnRef} className='circle-slider__next-btn' onClick={handleNext}>
+          <button className='circle-slider__next-btn' onClick={handleNext}>
             <ArrowIcon direction='right' />
           </button>
         </div>
       </div>
 
-      <div className='circle-slider__circle' ref={circleRef}>
+      <div className='circle-slider__circle'>
         <div className='circle-slider__dots'>
-          {mockData.map((_, idx) => {
-            const {x, y} = getDotPosition(idx, totalSlides)
-
-            const angleStep = 360 / totalSlides
-            const dotAngle = angleStep * idx
-
-            return (
-              <div
-                key={idx}
-                className='circle-slider__dot-wrapper'
-                style={{
-                  top: `${y}px`,
-                  left: `${x}px`,
-                  transform: `rotate(${compensationAngle}deg)`
-                }}
+          {mockData.map((_, idx) => (
+            <div
+              key={idx}
+              ref={el => {
+                dotWrapperRefs.current[idx] = el
+              }}
+              className='circle-slider__dot-wrapper'
+            >
+              <button
+                className={`circle-slider__dot ${
+                  idx === activeIndex ? 'circle-slider__dot--active' : ''
+                }`}
+                onClick={() => handleDotClick(idx)}
               >
-                <button
-                  key={idx}
-                  type='button'
-                  className={`circle-slider__dot ${idx === activeIndex ? 'circle-slider__dot--active' : ''}`}
-                  onClick={() => handleDotClick(idx)}
-                >
-                  {idx + 1}
-                </button>
-              </div>
-            )
-          })}
+                {idx + 1}
+              </button>
+            </div>
+          ))}
         </div>
       </div>
 
@@ -239,10 +233,9 @@ const CircularSlider = ({activeIndex, onChange, onAnimateStateChange}: CircularS
         slidesPerView={1}
         speed={0}
         allowTouchMove={false}
-        onSlideChange={swiper => onChange(swiper.activeIndex)}
         className='circle-slider__swiper'
       >
-        {mockData.map((interval, idx) => (
+        {mockData.map((_, idx) => (
           <SwiperSlide key={idx}>
             <div className='circle-slider__age-interval'>
               <span>{fromYear}</span>
@@ -255,6 +248,7 @@ const CircularSlider = ({activeIndex, onChange, onAnimateStateChange}: CircularS
     </div>
   )
 }
+
 
 type EventsSliderProps = {
   events: EventsData[]
