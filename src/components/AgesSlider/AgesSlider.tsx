@@ -98,8 +98,7 @@ const CircularSlider = ({activeIndex, onChange, onAnimateStateChange}: CircularS
   const CIRCLE_RADIUS = 180
   const START_ANGLE = -60
 
-  const getAngleByIndex = (index: number) =>
-    START_ANGLE + (360 / totalSlides) * index
+  const getAngleByIndex = (index: number) => START_ANGLE + (360 / totalSlides) * index
 
   const angleToXY = (angleDeg: number) => {
     const rad = (angleDeg * Math.PI) / 180
@@ -130,16 +129,14 @@ const CircularSlider = ({activeIndex, onChange, onAnimateStateChange}: CircularS
       if (!wrapper) return
 
       const currentAngle = dotAnglesRef.current[idx]
-      const shiftedIndex = (idx - activeIdx + totalSlides) % totalSlides
       const targetAngle = getAngleByIndex(idx - activeIdx + totalSlides)
-
-      // shortest arc
+      
       let delta = ((targetAngle - currentAngle + 540) % 360) - 180
 
       const angleObj = {angle: currentAngle}
 
       gsap.to(angleObj, {
-        angle: targetAngle,
+        angle: currentAngle + delta,
         duration: 0.8,
         ease: 'power2.inOut',
         onUpdate: () => {
@@ -216,9 +213,7 @@ const CircularSlider = ({activeIndex, onChange, onAnimateStateChange}: CircularS
               className='circle-slider__dot-wrapper'
             >
               <button
-                className={`circle-slider__dot ${
-                  idx === activeIndex ? 'circle-slider__dot--active' : ''
-                }`}
+                className={`circle-slider__dot ${idx === activeIndex ? 'circle-slider__dot--active' : ''}`}
                 onClick={() => handleDotClick(idx)}
               >
                 {idx + 1}
@@ -228,13 +223,7 @@ const CircularSlider = ({activeIndex, onChange, onAnimateStateChange}: CircularS
         </div>
       </div>
 
-      <Swiper
-        ref={swiperRef}
-        slidesPerView={1}
-        speed={0}
-        allowTouchMove={false}
-        className='circle-slider__swiper'
-      >
+      <Swiper ref={swiperRef} slidesPerView={1} speed={0} allowTouchMove={false} className='circle-slider__swiper'>
         {mockData.map((_, idx) => (
           <SwiperSlide key={idx}>
             <div className='circle-slider__age-interval'>
@@ -248,7 +237,6 @@ const CircularSlider = ({activeIndex, onChange, onAnimateStateChange}: CircularS
     </div>
   )
 }
-
 
 type EventsSliderProps = {
   events: EventsData[]
