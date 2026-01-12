@@ -3,7 +3,7 @@ import {faker} from '@faker-js/faker'
 faker.seed(1919)
 
 export type EventsData = {titleYear: number; desc: string}
-export type AgesInterval = {from: number; to: number; events: EventsData[]}
+export type AgesInterval = {titleAges: string; from: number; to: number; events: EventsData[]}
 
 export interface MockDataOptions {
   periodCount?: number // количество периодов
@@ -15,13 +15,27 @@ export interface MockDataOptions {
 export const generateAges = (options: MockDataOptions = {}): AgesInterval[] => {
   const {periodCount = 6, eventsPerPeriod = {min: 4, max: 6}, startYear = 1990, yearsPerPeriod = 5} = options
 
+  const ageCategories = [
+    'Наука',
+    'Искусство',
+    'История',
+    'Мир',
+    'Философия',
+    'Технологии',
+    'Культура',
+    'Открытия',
+    'Спорт',
+    'Политика'
+  ]
+
   const periods: AgesInterval[] = []
 
   for (let i = 0; i < periodCount; i++) {
     const from = startYear + i * yearsPerPeriod
     const to = from + yearsPerPeriod - 1
 
-    // Количество событий в периоде
+    const titleAges = faker.helpers.arrayElement(ageCategories)
+
     const eventCount =
       typeof eventsPerPeriod === 'number'
         ? eventsPerPeriod
@@ -74,14 +88,19 @@ export const generateAges = (options: MockDataOptions = {}): AgesInterval[] => {
         `${day} ${month} — Произошло редкое астрономическое событие — ${faker.lorem.words(
           5
         )}, видимое в нескольких континентах`,
-        `${day} ${month} — ${faker.company.name()} объявила о прорыве в ${faker.hacker.noun()} с использованием искусственного интеллекта`
+        `${day} ${month} — ${faker.company.name()} объявила о прорыве в ${faker.hacker.noun()} с использованием искусственного интеллекта`,
+        `${day} ${month} — ${faker.company.name()} представила ${titleAges.toLowerCase()} прорыв`,
+        `${day} ${month} — Крупное событие в области ${titleAges.toLowerCase()}`,
+        `${day} ${month} — ${faker.person.fullName()} совершил открытие в ${titleAges.toLowerCase()}`,
+        `${day} ${month} — Впервые в истории ${faker.lorem.words(3)} в ${titleAges.toLowerCase()}`,
+        `${day} ${month} — Мировой рекорд в ${titleAges.toLowerCase()}`
       ]
 
       const desc = faker.helpers.arrayElement(eventTemplates)
       events.push({titleYear: year, desc})
     }
 
-    periods.push({from, to, events})
+    periods.push({titleAges, from, to, events})
   }
 
   return periods
